@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\AuthResource;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Services\TokenService;
 use Illuminate\Http\Request;
 use App\Http\Requests\ChangePasswordRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class AuthController extends Controller
 {
@@ -44,17 +46,18 @@ class AuthController extends Controller
 
         if (!$user) {
             return response()->json([
-                'message' => 'Неверное имя пользователя или пароль.',
+                'message' => 'Invalid username or password.',
             ], 401);
         }
 
         // Генерация токена через сервис
-        $token = $this->tokenService->generateToken($user);
+        $tokens = $this->tokenService->generateToken($user);
 
-        // Возвращаем токен и данные пользователя
+        // Возвращаем токены и данные пользователя
         return response()->json([
             'status' => 'success',
-            'token' => $token,
+            'access_token' => $tokens['access_token'],
+            'refresh_token' => $tokens['refresh_token'],
             'user' => new AuthResource($user),
         ], 200);
     }
@@ -117,7 +120,7 @@ class AuthController extends Controller
         if (!Hash::check($request->current_password, $user->password)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Текущий пароль неверен.',
+                'message' => 'The current password is incorrect.',
             ], 400);
         }
 
@@ -125,7 +128,7 @@ class AuthController extends Controller
         if (Hash::check($request->new_password, $user->password)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Новый пароль не должен совпадать с текущим паролем.',
+                'message' => 'The new password must not match the current password.',
             ], 400);
         }
 
@@ -133,9 +136,36 @@ class AuthController extends Controller
         $user->password = Hash::make($request->new_password);
         $user->save();
 
+        // Удаляем все токены пользователя
+        UserToken::where('user_id', $user->id)->delete();
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Пароль успешно обновлен.',
+            'message' => 'The password has been successfully updated.',
         ], 200);
+    }
+
+    public function refresh(Request $request)
+    {
+        $refreshToken = $request->input('refresh_token');
+
+        if (!$refreshToken) {
+            return response()->json([
+                'message' => 'The Refresh token has not been provided.'
+            ], 400);
+        }
+
+        try {
+            $tokens = $this->tokenService->refreshAccessToken($refreshToken);
+
+            return response()->json([
+                'status' => 'success',
+                'access_token' => $tokens['access_token'],
+                'refresh_token' => $tokens['refresh_token'],
+                'expires_at' => $tokens['expires_at'],
+            ], 200);
+        } catch (HttpResponseException $e) {
+            return $e->getResponse();
+        }
     }
 }

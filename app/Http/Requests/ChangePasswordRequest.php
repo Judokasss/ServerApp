@@ -15,11 +15,11 @@ class ChangePasswordRequest extends FormRequest
             'new_password' => [
                 'required',
                 'string',
-                'min:8', // Минимальная длина 8 символов
-                'regex:/[0-9]/', // Содержит хотя бы 1 цифру
-                'regex:/[A-Z]/', // Содержит хотя бы 1 символ в верхнем регистре
-                'regex:/[a-z]/', // Содержит хотя бы 1 символ в нижнем регистре
-                'regex:/[!@#$%^&*(),.?":{}|<>]/', // Содержит хотя бы 1 специальный символ
+                'min:8',
+                'regex:/[0-9]/',
+                'regex:/[A-Z]/',
+                'regex:/[a-z]/',
+                'regex:/[!@#$%^&*(),.?":{}|<>]/',
             ],
             'confirm_password' => ['required', 'same:new_password'],
         ];
@@ -31,7 +31,7 @@ class ChangePasswordRequest extends FormRequest
         throw new HttpResponseException(
             response()->json([
                 'status' => 'error',
-                'message' => 'Ошибка валидации',
+                'message' => 'Validation error.',
                 'errors' => $validator->errors(),
             ], 422)
         );
