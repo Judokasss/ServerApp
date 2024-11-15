@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 use App\Models\UserToken;
 use App\Services\TokenService;
@@ -38,7 +39,10 @@ class AuthMiddleware
             return response()->json(['message' => 'Token expired'], 401);
         }
 
-        // Авторизация пользователя
+        // Авторизация пользователя через глобальную систему Laravel
+        Auth::setUser($userToken->user);
+
+        // Оставляем merge для доступа к пользователю через $request->input('user')
         $request->merge(['user' => $userToken->user]);
 
         return $next($request);
