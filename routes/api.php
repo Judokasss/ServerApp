@@ -4,7 +4,8 @@ use App\Http\Controllers\API\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\PermissionController;
-
+use App\Http\Controllers\API\UserRoleController;
+use App\Http\Controllers\API\RolePermissionController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
@@ -47,4 +48,30 @@ Route::middleware(['auth.custom'])->group(function () {
   Route::delete('policy/permission/{id}/soft', [PermissionController::class, 'softDeletePermission']);
   // Восстановление мягко удаленного разрешения
   Route::post('policy/permission/{id}/restore', [PermissionController::class, 'restorePermission']);
+
+
+  /* ПОЛУЧЕНИЕ СПИСКА ПОЛЬЗОВАТЕЛЕЙ */
+  Route::get('policy/users', [UserRoleController::class, 'UserCollection']);
+  // Получение конкретного пользователя
+  Route::get('policy/user/{id}', [UserRoleController::class, 'showUser']);
+  // Создание связи пользователя и роли
+  Route::post('policy/user/{user_id}/role/{role_id}', [UserRoleController::class, 'storeUserRole']);
+  // Жесткое удаление связи пользователя и роли
+  Route::delete('policy/userRole/{id}', [UserRoleController::class, 'destroyUserRole']);
+  // Мягкое удаление связи пользователя и роли
+  Route::delete('policy/userRole/{id}/soft', [UserRoleController::class, 'softDeleteUserRole']);
+  // Восстановление мягко удаленноq связи пользователя и роли
+  Route::post('policy/userRole/{id}/restore', [UserRoleController::class, 'restoreUserRole']);
+
+
+  /* Получение конкретной связи роли с разрешениями */
+  Route::get('policy/rolePermission/{role_id}', [RolePermissionController::class, 'showRolePermission']);
+  // Создание связи роли с разрешениями
+  Route::post('policy/role/{role_id}/permission/{permission_id}', [RolePermissionController::class, 'storeRolePermission']);
+  // Жесткое удаление связи роли с разрешениями
+  Route::delete('policy/rolePermission/{id}', [RolePermissionController::class, 'destroyRolePermission']);
+  // Мягкое удаление связи роли с разрешениями
+  Route::delete('policy/rolePermission/{id}/soft', [RolePermissionController::class, 'softDeleteRolePermission']);
+  // Восстановление мягко удаленной связи роли с разрешениями
+  Route::post('policy/rolePermission/{id}/restore', [RolePermissionController::class, 'restoreRolePermission']);
 });
