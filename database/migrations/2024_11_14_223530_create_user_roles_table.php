@@ -15,9 +15,10 @@ return new class extends Migration
 
             // Служебные поля
             $table->timestamp('created_at')->useCurrent()->comment('Время создания записи');
-            $table->integer('created_by')->comment('Идентификатор пользователя, создавшего запись');
+            // Связываем created_by с таблицей users
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null')->comment('Идентификатор пользователя, создавшего запись');
             $table->softDeletes('deleted_at')->comment('Время мягкого удаления записи');
-            $table->integer('deleted_by')->nullable()->comment('Идентификатор пользователя, удалившего запись');
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->onDelete('set null')->comment('Идентификатор пользователя, удалившего запись');
         });
     }
 

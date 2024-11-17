@@ -8,6 +8,7 @@ use App\Http\Resources\RolePermissionResource;
 use App\Models\RolePermission;
 use App\DTO\RolePermissionDTO\RolePermissionDTO;
 use App\DTO\RolePermissionDTO\RolePermissionCollectionDTO;
+use Illuminate\Support\Facades\Auth;
 
 
 class RolePermissionController extends Controller
@@ -73,6 +74,11 @@ class RolePermissionController extends Controller
     if (!$rolePermission) {
       return response()->json(['message' => 'The permissions connection to the role was not found'], 404);
     }
+
+    // Устанавливаем `deleted_by` текущим пользователем перед мягким удалением
+    $rolePermission->deleted_by = Auth::id();
+    $rolePermission->save();
+
     $rolePermission->delete(); // Использует soft delete
     return response()->json(['message' => 'The permissions connection to the role soft deleted'], 200);
   }
@@ -85,6 +91,11 @@ class RolePermissionController extends Controller
     if (!$rolePermission) {
       return response()->json(['message' => 'The permissions connection to the role was not found'], 404);
     }
+
+    // Сбрасываем поле `deleted_by`
+    $rolePermission->deleted_by = null;
+    $rolePermission->save();
+
     $rolePermission->restore();
     return response()->json(['message' => 'The permissions connection to the role restored'], 200);
   }

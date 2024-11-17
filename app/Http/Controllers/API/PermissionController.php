@@ -9,6 +9,7 @@ use App\Http\Requests\PermissionRequest\UpdatePermissionRequest;
 use App\Http\Resources\PermissionResource;
 use App\DTO\PermissionDTO\PermissionDTO;
 use App\DTO\PermissionDTO\PermissionCollectionDTO;
+use Illuminate\Support\Facades\Auth;
 
 class PermissionController extends Controller
 {
@@ -86,6 +87,11 @@ class PermissionController extends Controller
         if (!$permission) {
             return response()->json(['message' => 'Permission not found'], 404);
         }
+
+        // Устанавливаем `deleted_by` текущим пользователем перед мягким удалением
+        $permission->deleted_by = Auth::id();
+        $permission->save();
+
         $permission->delete(); // Использует soft delete
         return response()->json(['message' => 'Permission soft deleted'], 200);
     }
@@ -98,6 +104,11 @@ class PermissionController extends Controller
         if (!$permission) {
             return response()->json(['message' => 'Permission not found'], 404);
         }
+
+        // Сбрасываем поле `deleted_by`
+        $permission->deleted_by = null;
+        $permission->save();
+
         $permission->restore();
         return response()->json(['message' => 'Permission restored'], 200);
     }

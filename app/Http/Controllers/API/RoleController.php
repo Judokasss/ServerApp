@@ -9,6 +9,7 @@ use App\Http\Requests\RoleRequest\UpdateRoleRequest;
 use App\Http\Resources\RoleResource;
 use App\DTO\RoleDTO\RoleDTO;
 use App\DTO\RoleDTO\RoleCollectionDTO;
+use Illuminate\Support\Facades\Auth;
 
 
 class RoleController extends Controller
@@ -87,6 +88,11 @@ class RoleController extends Controller
     if (!$role) {
       return response()->json(['message' => 'Role not found'], 404);
     }
+
+    // Устанавливаем `deleted_by` текущим пользователем перед мягким удалением
+    $role->deleted_by = Auth::id();
+    $role->save();
+
     $role->delete(); // Использует soft delete
     return response()->json(['message' => 'Role soft deleted'], 200);
   }
@@ -99,6 +105,11 @@ class RoleController extends Controller
     if (!$role) {
       return response()->json(['message' => 'Role not found'], 404);
     }
+
+    // Сбрасываем поле `deleted_by`
+    $role->deleted_by = null;
+    $role->save();
+
     $role->restore();
     return response()->json(['message' => 'Role restored'], 200);
   }

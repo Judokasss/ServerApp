@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\UserRole;
 use App\DTO\UserDTO\UserCollectionDTO;
 use App\DTO\UserDTO\UserDTO;
+use Illuminate\Support\Facades\Auth;
 
 
 class UserRoleController extends Controller
@@ -81,6 +82,11 @@ class UserRoleController extends Controller
         if (!$userRole) {
             return response()->json(['message' => 'The users connection to the role was not found'], 404);
         }
+
+        // Устанавливаем `deleted_by` текущим пользователем перед мягким удалением
+        $userRole->deleted_by = Auth::id();
+        $userRole->save();
+
         $userRole->delete(); // Использует soft delete
         return response()->json(['message' => 'The users connection to the role soft deleted'], 200);
     }
@@ -93,6 +99,11 @@ class UserRoleController extends Controller
         if (!$userRole) {
             return response()->json(['message' => 'The users connection to the role was not found'], 404);
         }
+
+        // Сбрасываем поле `deleted_by`
+        $userRole->deleted_by = null;
+        $userRole->save();
+
         $userRole->restore();
         return response()->json(['message' => 'The users connection to the role restored'], 200);
     }
