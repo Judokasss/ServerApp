@@ -8,6 +8,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\AuthResource;
 use App\Http\Resources\RegisterResource;
 use App\Http\Resources\UserResource;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\UserToken;
 use Illuminate\Support\Facades\Hash;
@@ -34,6 +35,12 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'birthday' => $request->birthday,
         ]);
+
+        // Назначаем пользователю роль 'user'
+        $userRole = Role::where('code', 'USER')->first(); // Находим роль 'USER' по её коду
+        if ($userRole) {
+            $user->roles()->attach($userRole->id, ['created_by' => $user->id]);
+        }
 
         return response()->json(new RegisterResource($user), 201);
     }
@@ -167,5 +174,31 @@ class AuthController extends Controller
         } catch (HttpResponseException $e) {
             return $e->getResponse();
         }
+    }
+
+    public function updateProfile(Request $request)
+    {
+        // Получаем текущего пользователя
+        $user = $request->user();
+
+        // Проверяем наличие разрешения 'UPDATE_USER'
+        if (!$user->hasPermission('UPDATE_USER')) {
+            return response()->json([
+                'error' => 'У вас нет доступа к этой операции. Необходимое разрешение: UPDATE_USER'
+            ], 403);
+        }
+
+        // Валидация входных данных
+        $request->validate([
+            'username' => 'string|max:255|alpha|regex:/^[A-Z]/',
+            'email' => 'string|email|max:255|unique:users,email,' . $user->id,
+            'birthday' => 'date|nullable',
+        ]);
+
+        // Обновляем данные пользователя
+        $user->update($request->only(['username', 'email', 'birthday']));
+
+        // Возвращаем обновленную информацию о пользователе
+        return new UserResource($user);
     }
 }

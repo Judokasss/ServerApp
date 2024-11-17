@@ -19,6 +19,9 @@ Route::middleware(['auth.custom'])->group(function () {
   Route::post('/auth/change_password', [AuthController::class, 'changePassword']);
   Route::post('/auth/refresh', [AuthController::class, 'refresh']);
 
+  // Маршрут для обновления профиля с middleware проверки аутентификации
+  Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
+
   /* РОЛИ */
 
   // Получение списка ролей

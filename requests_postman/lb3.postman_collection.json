@@ -1,0 +1,758 @@
+{
+	"info": {
+		"_postman_id": "c3a282f9-857c-43be-8bc2-e098cd4f34f7",
+		"name": "lb3",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38969418"
+	},
+	"item": [
+		{
+			"name": "ROLES ✔️",
+			"item": [
+				{
+					"name": "Создание новой роли",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer cbkZ7sbDEd971itRT_MHtCDG2aIJ_NJEj9l4Ys8Wx0iSV7MJCpXhBQ",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Joinedd\",\r\n    \"description\": \"Joinedd role\",\r\n    \"code\": \"Joinedd\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://application/api/policy/role",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"role"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Получение списка ролей",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer cbkZ7sbDEd971itRT_MHtCDG2aIJ_NJEj9l4Ys8Wx0iSV7MJCpXhBQ",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/role",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"role"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Получение конкретной роли по ID",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление существующей роли",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer K6MiyBHt7wmspgkHgNi5z6yxaVhOkQenOyP_ihf0bsi5-B9tAhWyIw",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Super Admin\",\r\n  \"description\": \"Updated description\",\r\n  \"code\": \"SUPER_ADMIN\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://application/api/policy/role/10",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"role",
+								"10"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Жесткое удаление роли",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer sSLRkgRjGK3sQRe-XMixV1bIZgdaRV0lqvTv2V6XuTWYZKMHSO_5Ww",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/role/10",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"role",
+								"10"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Мягкое удаление",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer ByDflv2aPnHLGVW-6rXgf8oQxt6xcQRA_djWfR3X7GwHI9U4GgdVpw",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/role/5/soft",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"role",
+								"5",
+								"soft"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Восстановление мягко удаленной роли",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer ZT38O7R4o-UbV-ANPXQqUFSDqlbzGN9WFxHFFgP4DSIBOLIDQVlmmA",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/role/11/restore",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"role",
+								"11",
+								"restore"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "PERMISSIONS✔️",
+			"item": [
+				{
+					"name": "Получение списка разрешений",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer WJuXMEnwWf7mDuJrh8BWLqH9GhLd29zAbLIO8TkUzGTMLdmEmiSF8g",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/permission",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"permission"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Получение конкретного разрешения по ID",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer 9Cbq50cx2lWpDxqZYz9VzIrLLJXl4JUo17df_iIRbW_V_X0-LSauCg",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://application/api/policy/permission/1",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"permission",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Создание нового разрешения",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer WJuXMEnwWf7mDuJrh8BWLqH9GhLd29zAbLIO8TkUzGTMLdmEmiSF8g",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"sad Reportss\",\r\n    \"description\": \"Allows viewing of reports\",\r\n    \"code\": \"asdasd\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://application/api/policy/permission",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"permission"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление разрешения",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer WJuXMEnwWf7mDuJrh8BWLqH9GhLd29zAbLIO8TkUzGTMLdmEmiSF8g",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Edit Reports\",\r\n    \"description\": \"Allows editing of reports\",\r\n    \"code\": \"EDIT_REPORTS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://application/api/policy/permission/7",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"permission",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Мягкое удаление разрешений",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer WJuXMEnwWf7mDuJrh8BWLqH9GhLd29zAbLIO8TkUzGTMLdmEmiSF8g",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Edit Reports\",\r\n    \"description\": \"Allows editing of reports\",\r\n    \"code\": \"EDIT_REPORTS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://application/api/policy/permission/7",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"permission",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Восстановление мягко удаленного разрешения",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer WJuXMEnwWf7mDuJrh8BWLqH9GhLd29zAbLIO8TkUzGTMLdmEmiSF8g",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://application/api/policy/permission/7/restore",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"permission",
+								"7",
+								"restore"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Жесткое удаление разрешений",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer TiaOiSenwLSdZucs_-XJgOGEq5tWpK8237-rB6T8sCtj3XyTcf3ung",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/permission/19",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"permission",
+								"19"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "UserAndRole✔️",
+			"item": [
+				{
+					"name": "Получение списка пользователей",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer XfGj5RsFpbQ_uRv6wS-LeoUwD5rSKt1q6Q5RsTMLRClbKknCdCbG5A",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/users",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Получение конкретного пользователя",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer xQqqPsK2wyxVAguc_KTuiGQoQeUtn3eRrPsk5Dhb1qi9rN_3014Q8A",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/user/1",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"user",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Создание связи пользователя и роли",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer K6eYSWxvg4-qbN_eSjcVqvc_VRBpnvwee8qah5dEu63v0PZ6V8Ce-w",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/user/1/role/13",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"user",
+								"1",
+								"role",
+								"13"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Жесткое удаление связи пользователя и роли",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer w67R_6lTTCtOTbPSdt6NsBwfVumk_0rYaxBKpTs-sdFLOxbgw0cpCQ",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/userRole/2",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"userRole",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Мягкое удаление связи пользователя и роли",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer LYBGrdvq-JMt9RFSg1dEbtgstj5QkQG0kiXLdPKGCFNFhp0gpqf8Ng",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/userRole/3/soft",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"userRole",
+								"3",
+								"soft"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Восстановление мягко удаленной связи пользователя и роли",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer LYBGrdvq-JMt9RFSg1dEbtgstj5QkQG0kiXLdPKGCFNFhp0gpqf8Ng",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/userRole/3/restore",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"userRole",
+								"3",
+								"restore"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "RoleAndPermission✔️",
+			"item": [
+				{
+					"name": "Получение конкретной связи роли с разрешениями",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer X4KSMwo4xN0l8JundjYX_QcnnebTxGfeqigJKapRk3n1VjIXbN3G3Q",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/rolePermission/1",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"rolePermission",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Создание связи роли с разрешением",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer X4KSMwo4xN0l8JundjYX_QcnnebTxGfeqigJKapRk3n1VjIXbN3G3Q",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/role/1/permission/1",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"role",
+								"1",
+								"permission",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Жесткое удаление связи роли с разрешением",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer HLUwa77nHqSI6Zua_UyWsTN4hTjTX4Tn4GxDdTBYeSp-Rl9rDBCkMg",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/rolePermission/21",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"rolePermission",
+								"21"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Мягкое удаление связи роли с разрешением",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer HLUwa77nHqSI6Zua_UyWsTN4hTjTX4Tn4GxDdTBYeSp-Rl9rDBCkMg",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/rolePermission/3/soft",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"rolePermission",
+								"3",
+								"soft"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Восстановление мягко удаленной связи роли с разрешением",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer HLUwa77nHqSI6Zua_UyWsTN4hTjTX4Tn4GxDdTBYeSp-Rl9rDBCkMg",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://application/api/policy/rolePermission/3/restore",
+							"protocol": "http",
+							"host": [
+								"application"
+							],
+							"path": [
+								"api",
+								"policy",
+								"rolePermission",
+								"3",
+								"restore"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,307 @@
+{
+	"info": {
+		"_postman_id": "6f5de940-cc78-4555-a6de-3161e0889443",
+		"name": "lb2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38969418"
+	},
+	"item": [
+		{
+			"name": "http://application/api/auth/register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"Testыыыыы\",\r\n    \"email\": \"Testыыыыы@mail.ru\",\r\n    \"password\": \"Qwerty2003@\",\r\n    \"c_password\": \"Qwerty2003@\",\r\n    \"birthday\": \"2003-05-24\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://application/api/auth/register",
+					"protocol": "http",
+					"host": [
+						"application"
+					],
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://application/api/auth/login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"AlexBremov\",\r\n    \"password\": \"Qwerty2003@\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://application/api/auth/login",
+					"protocol": "http",
+					"host": [
+						"application"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://application/api/auth/me",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 355N_IOkWszf_llRb_JcVxVoBdOpEsBvktNZ1nfdfz9gztM8eyqpgQ",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://application/api/auth/me",
+					"protocol": "http",
+					"host": [
+						"application"
+					],
+					"path": [
+						"api",
+						"auth",
+						"me"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://application/api/auth/out",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer -SoqnQaB7X8GI0G0K9Ui4qPGoIqn8lVDSN9FpcLTTvLQZ1cl2Dv1qw",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://application/api/auth/out",
+					"protocol": "http",
+					"host": [
+						"application"
+					],
+					"path": [
+						"api",
+						"auth",
+						"out"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://application/api/auth/tokens",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer B3IxOEIxIAFOBQOAGq_r8BU_oz59MVJ4RZiu9SmnrCJIGrOD38nQnA",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://application/api/auth/tokens",
+					"protocol": "http",
+					"host": [
+						"application"
+					],
+					"path": [
+						"api",
+						"auth",
+						"tokens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://application/api/auth/out_all",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer BB8FBVKn9vlOhkX-GcHbe1vO3YkFirg9ONL438aue7ZlDoD67ZtVjA",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://application/api/auth/out_all",
+					"protocol": "http",
+					"host": [
+						"application"
+					],
+					"path": [
+						"api",
+						"auth",
+						"out_all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://application/api/auth/change_password",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer ulOsZr2-Tw8yystkMqdEt4eAfYAwaU_1NRhbA-7rgDtK2NvEYbBtCQ",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"current_password\": \"Qwerty2003@2003\",\r\n    \"new_password\": \"Qwerty2003@\",\r\n    \"confirm_password\": \"Qwerty2003@\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://application/api/auth/change_password",
+					"protocol": "http",
+					"host": [
+						"application"
+					],
+					"path": [
+						"api",
+						"auth",
+						"change_password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://application/api/auth/refresh",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 355N_IOkWszf_llRb_JcVxVoBdOpEsBvktNZ1nfdfz9gztM8eyqpgQ",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"refresh_token\": \"C9skgesSslxaDQYpAVkHyQr94xrfaLGl8vUizi0ipNqFq4zDTEx8RA\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://application/api/auth/refresh",
+					"protocol": "http",
+					"host": [
+						"application"
+					],
+					"path": [
+						"api",
+						"auth",
+						"refresh"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Изменение профиля",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer xsI8xTAt0331eTABSohE6iBs0iO_5Dkl1e-DTojTB1r0CjaCNLYnpw",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"NewUsername\",\r\n  \"email\": \"newemail@example.com\",\r\n  \"birthday\": \"2000-01-01\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://application/api/auth/profile",
+					"protocol": "http",
+					"host": [
+						"application"
+					],
+					"path": [
+						"api",
+						"auth",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
