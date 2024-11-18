@@ -30,9 +30,8 @@ class RolePermissionController extends Controller
 
     // Оборачиваем массив DTO в коллекцию RolePermissionCollectionDTO
     $rolePermissionCollectionDTO = new RolePermissionCollectionDTO($rolePermissionDTOs);
-
     // Возвращаем результат
-    return $rolePermissionCollectionDTO->toArray();
+    return ($rolePermissionCollectionDTO->toArray() == null) ? response()->json(['message' => 'Role and permission not found'], 404) : $rolePermissionCollectionDTO->toArray();
   }
 
 

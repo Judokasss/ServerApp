@@ -63,7 +63,7 @@ Route::middleware(['auth.custom'])->group(function () {
   // Получение конкретного пользователя
   Route::get('policy/user/{id}', [UserRoleController::class, 'showUser'])->middleware(CheckPermission::class . ':READ_USER');
   // Создание связи пользователя и роли
-  Route::post('policy/user/{user_id}/role/{role_id}', [UserRoleController::class, 'storeUserRole']);
+  Route::post('policy/user/{user_id}/role/{role_id}', [UserRoleController::class, 'storeUserRole'])->middleware(CheckPermission::class . ':CREATE_PERMISSION');
   // Жесткое удаление связи пользователя и роли
   Route::delete('policy/userRole/{id}', [UserRoleController::class, 'destroyUserRole'])->middleware(CheckPermission::class . ':DELETE_USER');
   // Мягкое удаление связи пользователя и роли
