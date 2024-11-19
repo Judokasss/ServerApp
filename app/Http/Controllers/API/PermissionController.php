@@ -7,9 +7,14 @@ use App\Models\Permission;
 use App\Http\Requests\PermissionRequest\CreatePermissionRequest;
 use App\Http\Requests\PermissionRequest\UpdatePermissionRequest;
 use App\Http\Resources\PermissionResource;
+use App\Http\Resources\ChangeLogResource;
 use App\DTO\PermissionDTO\PermissionDTO;
 use App\DTO\PermissionDTO\PermissionCollectionDTO;
+use App\DTO\ChangeLogDTO\ChangeLogDTO;
+use App\DTO\ChangeLogDTO\ChangeLogCollectionDTO;
 use Illuminate\Support\Facades\Auth;
+use App\Models\ChangeLog;
+use Illuminate\Support\Facades\DB;
 
 class PermissionController extends Controller
 {
@@ -42,40 +47,68 @@ class PermissionController extends Controller
     // Создание нового разрешения
     public function storePermission(CreatePermissionRequest $request)
     {
-        // Получаем DTO из данных запроса
-        $permissionDTO = $request->toDTO();
+        DB::beginTransaction(); // Начинаем транзакцию
 
-        // Создаем новую роль, используя данные из DTO
-        $permission = Permission::create($permissionDTO->toArray());
+        try {
+            // Получаем DTO из данных запроса
+            $permissionDTO = $request->toDTO();
 
-        return (new PermissionResource($permission))->response()->setStatusCode(201);
+            // Создаем новую роль, используя данные из DTO
+            $permission = Permission::create($permissionDTO->toArray());
+
+            DB::commit(); // Подтверждаем транзакцию
+
+            return (new PermissionResource($permission))->response()->setStatusCode(201);
+        } catch (\Exception $e) {
+            DB::rollBack(); // Откатываем транзакцию в случае ошибки
+            return response()->json(['message' => 'Failed to store permission'], 500);
+        }
     }
 
     // Обновление существующего разрешения
     public function updatePermission(UpdatePermissionRequest $request, $id)
     {
-        // Находим модель по ID
-        $permission = Permission::findOrFail($id);
-        $permissionDTO = $request->toPermissionDTO();  // Получение DTO из запроса
-        $permission->update($permissionDTO->toArray());
-        return response()->json(new PermissionResource($permission), 200);
+        DB::beginTransaction(); // Начинаем транзакцию
+
+        try {
+            // Находим модель по ID
+            $permission = Permission::findOrFail($id);
+            $permissionDTO = $request->toPermissionDTO();  // Получение DTO из запроса
+            $permission->update($permissionDTO->toArray());
+
+            DB::commit(); // Подтверждаем транзакцию
+
+            return response()->json(new PermissionResource($permission), 200);
+        } catch (\Exception $e) {
+            DB::rollBack(); // Откатываем транзакцию в случае ошибки
+            return response()->json(['message' => 'Failed to update permission'], 500);
+        }
     }
 
     // Жесткое удаление роли по ID
     public function destroyPermission($id)
     {
-        // Находим роль по ID
-        $permission = Permission::find($id);
+        DB::beginTransaction(); // Начинаем транзакцию
 
-        // Проверяем, существует ли роль
-        if (!$permission) {
-            return response()->json(['message' => 'Permission not found'], 404);
+        try {
+            // Находим роль по ID
+            $permission = Permission::find($id);
+
+            // Проверяем, существует ли роль
+            if (!$permission) {
+                return response()->json(['message' => 'Permission not found'], 404);
+            }
+
+            // Выполняем жесткое удаление
+            $permission->forceDelete();
+
+            DB::commit(); // Подтверждаем транзакцию
+
+            return response()->json(['message' => 'Permission permanently deleted'], 200);
+        } catch (\Exception $e) {
+            DB::rollBack(); // Откатываем транзакцию в случае ошибки
+            return response()->json(['message' => 'Failed to delete permission'], 500);
         }
-
-        // Выполняем жесткое удаление
-        $permission->forceDelete();
-
-        return response()->json(['message' => 'Permission permanently deleted'], 200);
     }
 
     // Мягкое удаление роли
@@ -111,5 +144,29 @@ class PermissionController extends Controller
 
         $permission->restore();
         return response()->json(['message' => 'Permission restored'], 200);
+    }
+
+    // Получение истории изменения записи разрешения по id
+    public function permissionStory($entityId)
+    {
+        // Извлекаем все связи для конкретной роли по role_id
+        $permissions = ChangeLog::where('entity_id', $entityId)->get();
+
+        // Преобразуем коллекцию моделей RolePermission в массив DTO
+        $permissionsDTOs = $permissions->map(function ($permissionLog) {
+            return new ChangeLogDTO(
+                $permissionLog->entity_type,
+                $permissionLog->entity_id,
+                $permissionLog->before,
+                $permissionLog->after,
+                $permissionLog->created_by,
+            );
+        })->toArray();
+
+        // Оборачиваем массив DTO в коллекцию RolePermissionCollectionDTO
+        $changeLogCollectionDTO = new ChangeLogCollectionDTO($permissionsDTOs);
+
+        // Возвращаем результат
+        return response()->json(new ChangeLogResource($changeLogCollectionDTO->toArray()), 200);
     }
 }

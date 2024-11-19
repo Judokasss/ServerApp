@@ -25,7 +25,7 @@ Route::middleware(['auth.custom'])->group(function () {
   /* РОЛИ */
 
   // Получение списка ролей
-  Route::get('policy/role', [RoleController::class, 'indexRole'])->middleware(CheckPermission::class . ':GET-LIST_ROLE');
+  Route::get('/policy/role', [RoleController::class, 'indexRole'])->middleware(CheckPermission::class . ':GET-LIST_ROLE');
   // Получение конкретной роли
   Route::get('policy/role/{id}', [RoleController::class, 'showRole'])->middleware(CheckPermission::class . ':READ_ROLE');
   // Создание роли
@@ -38,6 +38,8 @@ Route::middleware(['auth.custom'])->group(function () {
   Route::delete('policy/role/{id}/soft', [RoleController::class, 'softDeleteRole'])->middleware(CheckPermission::class . ':DELETE_ROLE');
   // Восстановление мягко удаленной роли
   Route::post('policy/role/{id}/restore', [RoleController::class, 'restoreRole'])->middleware(CheckPermission::class . ':RESTORE_ROLE');
+  // Получение истории изменения записи роли
+  Route::get('policy/role/{entityId}/story', [RoleController::class, 'roleStory'])->middleware(CheckPermission::class . ':GET-STORY_ROLE');
 
   /* РАЗРЕШЕНИЯ */
 
@@ -55,6 +57,8 @@ Route::middleware(['auth.custom'])->group(function () {
   Route::delete('policy/permission/{id}/soft', [PermissionController::class, 'softDeletePermission'])->middleware(CheckPermission::class . ':DELETE_PERMISSION');
   // Восстановление мягко удаленного разрешения
   Route::post('policy/permission/{id}/restore', [PermissionController::class, 'restorePermission'])->middleware(CheckPermission::class . ':RESTORE_PERMISSION');
+  // Получение истории изменения записи разрешения
+  Route::get('policy/permission/{entity_id}/story', [PermissionController::class, 'permissionStory'])->middleware(CheckPermission::class . ':GET-STORY_PERMISSION');
 
   /* ПОЛУЧЕНИЕ СПИСКА ПОЛЬЗОВАТЕЛЕЙ */
 
@@ -70,6 +74,8 @@ Route::middleware(['auth.custom'])->group(function () {
   Route::delete('policy/userRole/{id}/soft', [UserRoleController::class, 'softDeleteUserRole'])->middleware(CheckPermission::class . ':DELETE_USER');
   // Восстановление мягко удаленной связи пользователя и роли
   Route::post('policy/userRole/{id}/restore', [UserRoleController::class, 'restoreUserRole'])->middleware(CheckPermission::class . ':RESTORE_USER');
+  // Получение истории изменения записи пользователя
+  Route::get('policy/user/{entity_id}/story', [UserRoleController::class, 'userStory'])->middleware(CheckPermission::class . ':GET-STORY_USER');
 
   /* СВЯЗИ РОЛИ С РАЗРЕШЕНИЯМИ  */
 

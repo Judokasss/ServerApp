@@ -4,13 +4,17 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Role;
+use App\Models\ChangeLog;
 use App\Http\Requests\RoleRequest\CreateRoleRequest;
 use App\Http\Requests\RoleRequest\UpdateRoleRequest;
 use App\Http\Resources\RoleResource;
 use App\DTO\RoleDTO\RoleDTO;
 use App\DTO\RoleDTO\RoleCollectionDTO;
+use App\DTO\ChangeLogDTO\ChangeLogDTO;
+use App\DTO\ChangeLogDTO\ChangeLogCollectionDTO;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\DB;
+use App\Http\Resources\ChangeLogResource;
 
 class RoleController extends Controller
 {
@@ -43,40 +47,68 @@ class RoleController extends Controller
   // Создание новой роли
   public function storeRole(CreateRoleRequest $request)
   {
-    // Получаем DTO из данных запроса
-    $roleDTO = $request->toDTO();
+    DB::beginTransaction(); // Начинаем транзакцию
 
-    // Создаем новую роль, используя данные из DTO
-    $role = Role::create($roleDTO->toArray());
+    try {
+      // Получаем DTO из данных запроса
+      $roleDTO = $request->toDTO();
 
-    return (new RoleResource($role))->response()->setStatusCode(201);
+      // Создаем новую роль, используя данные из DTO
+      $role = Role::create($roleDTO->toArray());
+
+      DB::commit(); // Подтверждаем транзакцию
+
+      return (new RoleResource($role))->response()->setStatusCode(201);
+    } catch (\Exception $e) {
+      DB::rollBack(); // Откатываем транзакцию в случае ошибки
+      return response()->json(['message' => 'Failed to store role'], 500);
+    }
   }
 
   // Обновление существующей роли
   public function updateRole(UpdateRoleRequest $request, $id)
   {
-    // Находим модель по ID
-    $role = Role::findOrFail($id);
-    $roleDTO = $request->toRoleDTO();  // Получение DTO из запроса
-    $role->update($roleDTO->toArray());
-    return response()->json(new RoleResource($role), 200);
+    DB::beginTransaction(); // Начинаем транзакцию
+
+    try {
+      // Находим модель по ID
+      $role = Role::findOrFail($id);
+      $roleDTO = $request->toRoleDTO();  // Получение DTO из запроса
+      $role->update($roleDTO->toArray());
+
+      DB::commit(); // Подтверждаем транзакцию
+
+      return response()->json(new RoleResource($role), 200);
+    } catch (\Exception $e) {
+      DB::rollBack(); // Откатываем транзакцию в случае ошибки
+      return response()->json(['message' => 'Failed to update role'], 500);
+    }
   }
 
   // Жесткое удаление роли по ID
   public function destroyRole($id)
   {
-    // Находим роль по ID
-    $role = Role::find($id);
+    DB::beginTransaction(); // Начинаем транзакцию
 
-    // Проверяем, существует ли роль
-    if (!$role) {
-      return response()->json(['message' => 'Role not found'], 404);
+    try {
+      // Находим роль по ID
+      $role = Role::find($id);
+
+      // Проверяем, существует ли роль
+      if (!$role) {
+        return response()->json(['message' => 'Role not found'], 404);
+      }
+
+      // Выполняем жесткое удаление
+      $role->forceDelete();
+
+      DB::commit(); // Подтверждаем транзакцию
+
+      return response()->json(['message' => 'Role permanently deleted'], 200);
+    } catch (\Exception $e) {
+      DB::rollBack(); // Откатываем транзакцию в случае ошибки
+      return response()->json(['message' => 'Failed to delete role'], 500);
     }
-
-    // Выполняем жесткое удаление
-    $role->forceDelete();
-
-    return response()->json(['message' => 'Role permanently deleted'], 200);
   }
 
   // Мягкое удаление роли
@@ -112,5 +144,29 @@ class RoleController extends Controller
 
     $role->restore();
     return response()->json(['message' => 'Role restored'], 200);
+  }
+
+  // Получение истории изменения записи роли по id
+  public function roleStory($entityId)
+  {
+    // Извлекаем все связи для конкретной роли по role_id
+    $roles = ChangeLog::where('entity_id', $entityId)->get();
+
+    // Преобразуем коллекцию моделей RolePermission в массив DTO
+    $roleDTOs = $roles->map(function ($roleLog) {
+      return new ChangeLogDTO(
+        $roleLog->entity_type,
+        $roleLog->entity_id,
+        $roleLog->before,
+        $roleLog->after,
+        $roleLog->created_by,
+      );
+    })->toArray();
+
+    // Оборачиваем массив DTO в коллекцию RolePermissionCollectionDTO
+    $changeLogCollectionDTO = new ChangeLogCollectionDTO($roleDTOs);
+
+    // Возвращаем результат
+    return response()->json(new ChangeLogResource($changeLogCollectionDTO->toArray()), 200);
   }
 }
