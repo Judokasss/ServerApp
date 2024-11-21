@@ -132,7 +132,9 @@ class UserRoleController extends Controller
     public function userStory($entityId)
     {
         // Извлекаем все связи для конкретной роли по role_id
-        $users = ChangeLog::where('entity_id', $entityId)->get();
+        $users = ChangeLog::where('entity_type', 'users')
+            ->where('entity_id', $entityId)
+            ->get();
 
         // Преобразуем коллекцию моделей RolePermission в массив DTO
         $usersDTOs = $users->map(function ($userLog) {
@@ -147,8 +149,8 @@ class UserRoleController extends Controller
 
         // Оборачиваем массив DTO в коллекцию RolePermissionCollectionDTO
         $changeLogCollectionDTO = new ChangeLogCollectionDTO($usersDTOs);
-
-        // Возвращаем результат
-        return response()->json(new ChangeLogResource($changeLogCollectionDTO->toArray()), 200);
+        return ($changeLogCollectionDTO->toArray() == null)
+            ? response()->json(['message' => 'User not found'], 404)
+            : response()->json(new ChangeLogResource($changeLogCollectionDTO->toArray()), 200);
     }
 }

@@ -30,7 +30,9 @@ trait LogsChanges
   private static function logChange($model, $action, $before, $after)
   {
     // Получение ID текущего пользователя
-    $userId = request()->user()->id;
+    // $userId = request()->user()->id;
+
+    $userId = 1;
 
     ChangeLog::create([
       'entity_type' => $model->getTable(), // Имя сущности

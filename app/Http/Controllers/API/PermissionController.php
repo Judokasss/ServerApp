@@ -149,8 +149,10 @@ class PermissionController extends Controller
     // Получение истории изменения записи разрешения по id
     public function permissionStory($entityId)
     {
-        // Извлекаем все связи для конкретной роли по role_id
-        $permissions = ChangeLog::where('entity_id', $entityId)->get();
+        // Извлекаем все записи, полученный с БД
+        $permissions = ChangeLog::where('entity_type', 'permissions')
+            ->where('entity_id', $entityId)
+            ->get();
 
         // Преобразуем коллекцию моделей RolePermission в массив DTO
         $permissionsDTOs = $permissions->map(function ($permissionLog) {
@@ -163,10 +165,11 @@ class PermissionController extends Controller
             );
         })->toArray();
 
-        // Оборачиваем массив DTO в коллекцию RolePermissionCollectionDTO
+        // Оборачиваем массив DTO в коллекцию ChangeLogCollectionDTO
         $changeLogCollectionDTO = new ChangeLogCollectionDTO($permissionsDTOs);
 
-        // Возвращаем результат
-        return response()->json(new ChangeLogResource($changeLogCollectionDTO->toArray()), 200);
+        return ($changeLogCollectionDTO->toArray() == null)
+            ? response()->json(['message' => 'Permission not found'], 404)
+            : response()->json(new ChangeLogResource($changeLogCollectionDTO->toArray()), 200);
     }
 }
