@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Models\ChangeLog;
+use Illuminate\Support\Facades\Auth;
 
 trait LogsChanges
 {
@@ -29,10 +30,13 @@ trait LogsChanges
 
   private static function logChange($model, $action, $before, $after)
   {
-    // Получение ID текущего пользователя
-    // $userId = request()->user()->id;
+    // Попытка получить ID текущего пользователя, если он авторизован
+    $userId = Auth::check() ? Auth::id() : null;
 
-    $userId = 1;
+    // Если пользователь не авторизован, используем системный ID или другой идентификатор
+    if ($userId === null) {
+      $userId = 1;
+    }
 
     ChangeLog::create([
       'entity_type' => $model->getTable(), // Имя сущности
