@@ -21,7 +21,7 @@ Route::middleware(['auth.custom'])->group(function () {
   Route::post('/auth/refresh', [AuthController::class, 'refresh']);
 
   // Маршрут для обновления профиля с middleware проверки аутентификации
-  Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
+  Route::put('/auth/profile', [AuthController::class, 'updateProfile'])->middleware(CheckPermission::class . ':UPDATE_USER');
 
   /* РОЛИ */
 

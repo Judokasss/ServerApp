@@ -36,8 +36,10 @@ class User extends Authenticatable
 
     public function hasPermission(string $permissionName): bool
     {
-        return $this->roles()->whereHas('permissions', function ($query) use ($permissionName) {
-            $query->where('code', $permissionName);
-        })->exists();
+        return $this->roles()
+            ->whereNull('user_roles.deleted_at') // Фильтр на мягкое удаление
+            ->whereHas('permissions', function ($query) use ($permissionName) {
+                $query->where('code', $permissionName);
+            })->exists();
     }
 }
