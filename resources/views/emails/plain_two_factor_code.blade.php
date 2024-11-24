@@ -1,0 +1,1 @@
+Your two-factor authentication code is: {{ $code }}

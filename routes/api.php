@@ -11,8 +11,13 @@ use App\Http\Middleware\CheckPermission;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/2fa/confirm', [AuthController::class, 'confirmLogin']);
 
 Route::middleware(['auth.custom'])->group(function () {
+
+  Route::post('/2fa/request-code', [AuthController::class, 'requestTwoFactorCode']);
+  Route::post('/2fa/toggle', [AuthController::class, 'toggleTwoFactor']);
+
   Route::get('/auth/me', [AuthController::class, 'me']);
   Route::post('/auth/out', [AuthController::class, 'logout']);
   Route::get('/auth/tokens', [AuthController::class, 'tokens']);

@@ -17,16 +17,23 @@ class User extends Authenticatable
         'email',
         'password',
         'birthday',
+        'is_two_fa_enabled',
+        'two_fa_code',
+        'two_fa_expires_at',
+        'two_fa_device_id',
     ];
 
     protected $hidden = [
         'password',
+        'two_fa_code',  // Скрываем 2FA код
         // 'remember_token',
     ];
 
     protected $casts = [
         // 'email_verified_at' => 'datetime',
         'birthday' => 'date',
+        'is_two_fa_enabled' => 'boolean',
+        'two_fa_expires_at' => 'datetime',
     ];
 
     public function roles(): BelongsToMany

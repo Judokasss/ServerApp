@@ -16,6 +16,7 @@ use App\Services\TokenService;
 use Illuminate\Http\Request;
 use App\Http\Requests\ChangePasswordRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Services\TwoFactorService;
 
 class AuthController extends Controller
 {
@@ -46,7 +47,7 @@ class AuthController extends Controller
     }
 
     // Вход пользователя
-    public function login(LoginRequest $request)
+    public function login(LoginRequest $request, TwoFactorService $service)
     {
         // Проверка пользователя и пароля
         $user = $this->authenticateUser($request->username, $request->password);
@@ -57,7 +58,22 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // Генерация токена через сервис
+        // Если 2FA включён
+        if ($user->is_two_fa_enabled) {
+            // Генерация кода 2FA
+            $deviceId = $request->header('Device-ID');
+            $code = $service->setCode($user, $deviceId);
+
+            // Отправляем код (например, на email)
+            // Mail::to($user->email)->send(new TwoFactorCodeMail($code));
+
+            return response()->json([
+                'message' => '2FA code sent.',
+                'requires_2fa' => true
+            ], 200);
+        }
+
+        // Если 2FA не включён, сразу выдаём токен
         $tokens = $this->tokenService->generateToken($user);
 
         // Возвращаем токены и данные пользователя
@@ -200,5 +216,90 @@ class AuthController extends Controller
 
         // Возвращаем обновленную информацию о пользователе
         return new UserResource($user);
+    }
+    // Запрос нового кода
+    public function requestTwoFactorCode(Request $request, TwoFactorService $service)
+    {
+        $user = $request->user();
+
+        if (!$user->is_two_fa_enabled) { // Переименовано поле
+            return response()->json(['message' => '2FA is not enabled'], 400);
+        }
+
+        $deviceId = $request->header('Device-ID'); // Получаем идентификатор устройства
+        $code = $service->setCode($user, $deviceId);
+
+        // Отправьте код пользователю (например, по электронной почте)
+        // Mail::to($user->email)->send(new TwoFactorCodeMail($code));
+
+        return response()->json(['message' => 'New 2FA code sent.']);
+    }
+
+    // Подтверждение кода
+    public function confirmTwoFactorCode(Request $request, TwoFactorService $service)
+    {
+        $user = $request->user();
+        $code = $request->input('code');
+        $deviceId = $request->header('Device-ID');
+
+        if (!$user->is_two_fa_enabled || $user->two_fa_device_id !== $deviceId) { // Проверка на правильное устройство
+            return response()->json(['message' => 'Invalid device or 2FA not enabled'], 400);
+        }
+
+        if (!$service->isValid($code, $user)) {
+            return response()->json(['message' => 'Invalid or expired code'], 400);
+        }
+
+        $service->clearCode($user);
+
+        return response()->json(['message' => '2FA verified successfully']);
+    }
+    // Включение/выключение 2FA
+    public function toggleTwoFactor(Request $request)
+    {
+        $user = $request->user();
+        $currentPassword = $request->input('password');
+
+        if (!Hash::check($currentPassword, $user->password)) {
+            return response()->json(['message' => 'Invalid password'], 400);
+        }
+
+        $user->is_two_fa_enabled = !$user->is_two_fa_enabled; // Переименовано поле
+        $user->save();
+
+        return response()->json([
+            'message' => $user->is_two_fa_enabled ? '2FA enabled' : '2FA disabled',
+        ]);
+    }
+
+    public function confirmLogin(Request $request, TwoFactorService $service)
+    {
+        $user = User::where('email', $request->input('email'))->first();
+
+        // Если пользователь не найден или не включён 2FA
+        if (!$user || !$user->is_two_fa_enabled) {
+            return response()->json(['message' => 'Invalid request or 2FA not enabled.'], 400);
+        }
+
+        $code = $request->input('code');
+        $deviceId = $request->header('Device-ID');
+
+        // Проверяем код 2FA
+        if (!$service->isValid($code, $user) || ($user->two_fa_device_id && $user->two_fa_device_id !== $deviceId)) {
+            return response()->json(['message' => 'Invalid or expired code.'], 400);
+        }
+
+        // Очищаем код 2FA
+        $service->clearCode($user);
+
+        // Выдаём токен
+        $tokens = $this->tokenService->generateToken($user);
+
+        return response()->json([
+            'status' => 'success',
+            'access_token' => $tokens['access_token'],
+            'refresh_token' => $tokens['refresh_token'],
+            'user' => new AuthResource($user),
+        ], 200);
     }
 }
