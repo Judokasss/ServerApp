@@ -12,6 +12,7 @@ class UserToken extends Model
         'expires_at',
         'refresh_token',
         'refresh_expires_at',
+        'is_tmp',
     ];
 
     public function user()

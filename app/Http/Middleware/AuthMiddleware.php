@@ -34,15 +34,18 @@ class AuthMiddleware
             return response()->json(['message' => 'Invalid token'], 401);
         }
 
-        // Проверка на истечение срока действия токена через сервис
+        // Проверка на истечение срока действия токена
         if ($this->tokenService->isTokenExpired($userToken)) {
             return response()->json(['message' => 'Token expired'], 401);
         }
 
-        // Авторизация пользователя через глобальную систему Laravel
-        Auth::setUser($userToken->user);
+        // Проверка, если токен временный (is_tmp = 1)
+        if ($userToken->is_tmp) {
+            return response()->json(['message' => 'Temporary token. 2FA verification required.'], 403);
+        }
 
-        // Оставляем merge для доступа к пользователю через $request->input('user')
+        // Авторизация пользователя
+        Auth::setUser($userToken->user);
         $request->merge(['user' => $userToken->user]);
 
         return $next($request);

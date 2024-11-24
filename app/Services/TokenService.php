@@ -129,4 +129,17 @@ class TokenService
 
         return $currentTime->gte($expiryTime);
     }
+    public function generateTemporaryToken(User $user)
+    {
+        $temporaryToken = $this->createToken();
+
+        UserToken::create([
+            'user_id' => $user->id,
+            'token' => $temporaryToken,
+            'expires_at' => Carbon::now()->addMinutes((int)env('TEMP_TOKEN_LIFETIME', 5)),
+            'is_tmp' => 1, // Устанавливаем временный токен
+        ]);
+
+        return $temporaryToken;
+    }
 }
