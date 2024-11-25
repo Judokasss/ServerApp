@@ -14,8 +14,9 @@ use Carbon\Carbon;
 
 class TwoFactorController extends Controller
 {
-  protected $twoFactorService;
+  protected $twoFactorService; // храним экз сервиса 
 
+  // Внедряем зависимость TwoFactorService, для испо методов в контроллере
   public function __construct(TwoFactorService $twoFactorService)
   {
     $this->twoFactorService = $twoFactorService;
@@ -84,7 +85,7 @@ class TwoFactorController extends Controller
           ]);
 
           return response()->json([
-            'message' => 'Слишком много запросов. Пожалуйста, попробуйте снова через ' . ceil($waitTime) . ' секунд.'
+            'message' => 'Too many requests, please try again ' . ceil($waitTime) . ' second.'
           ], 429);
         } else {
           // Достаточно времени прошло, сбрасываем счётчик
@@ -111,7 +112,7 @@ class TwoFactorController extends Controller
     // Генерация и отправка нового 2FA-кода
     $this->twoFactorService->setCode($user, $deviceId);
 
-    return response()->json(['message' => '2FA код отправлен повторно']);
+    return response()->json(['message' => '2FA the code was sent again']);
   }
 
   // Подтверждение 2FA-кода
