@@ -7,17 +7,18 @@ use App\Http\Controllers\API\PermissionController;
 use App\Http\Controllers\API\UserRoleController;
 use App\Http\Controllers\API\RolePermissionController;
 use App\Http\Controllers\API\ChangeLogController;
+use App\Http\Controllers\API\TwoFactorController;
 use App\Http\Middleware\CheckPermission;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
 
-Route::post('/2fa/confirm', [AuthController::class, 'confirmLogin']);
-Route::post('/2fa/request-new-code', [AuthController::class, 'requestTwoFactorCode']);
+Route::post('/2fa/confirm', [TwoFactorController::class, 'confirmCode']);
+Route::post('/2fa/request-new-code', [TwoFactorController::class, 'requestNewCode']);
 
 Route::middleware(['auth.custom'])->group(function () {
 
-  Route::post('/2fa/toggle', [AuthController::class, 'toggleTwoFactor']);
+  Route::post('/2fa/toggle', [TwoFactorController::class, 'toggleTwoFactor']);
 
   Route::get('/auth/me', [AuthController::class, 'me']);
   Route::post('/auth/out', [AuthController::class, 'logout']);

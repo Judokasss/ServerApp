@@ -34,6 +34,7 @@ class User extends Authenticatable
         'birthday' => 'date',
         'is_two_fa_enabled' => 'boolean',
         'two_fa_expires_at' => 'datetime',
+        'last_request_time' => 'datetime',
     ];
 
     public function roles(): BelongsToMany
