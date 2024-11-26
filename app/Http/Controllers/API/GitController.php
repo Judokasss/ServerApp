@@ -4,14 +4,15 @@ namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 
 class GitController extends Controller
 {
     public function handleGitWebhook(Request $request)
     {
+        $gitBinary = '"C:/Program Files/Git/bin/git.exe"'; // Полный путь к git.exe
+
         // 6. Проверка секретного ключа
         $secretKey = $request->input('secret_key');
         $validKey = env('GIT_SECRET_KEY'); // Получаем секретный ключ из .env
@@ -32,17 +33,34 @@ class GitController extends Controller
 
         if ($lock->get()) {
             try {
-                // 9.2 Переключаемся на главную ветку
-                shell_exec('git checkout master');
-                Log::info('Switched to the master branch');
+                // Указание пути к репозиторию
+                $repositoryPath = 'D:/OSPanel/home/application'; // Заменить на актуальный путь
+                Log::info('Repository path: ' . $repositoryPath);
+
+                // Стэширование изменений перед переключением ветки
+                shell_exec("cd {$repositoryPath} && {$gitBinary} git stash");
+                Log::info('Stashed local changes before switching branch');
+
+                // Выполняем команду git checkout
+                $checkoutOutput = shell_exec("cd {$repositoryPath} && {$gitBinary} git checkout master 2>&1");
+                Log::info('Git checkout output: ' . $checkoutOutput);
+
+                // Проверяем текущую ветку
+                $branchCheck = shell_exec("cd {$repositoryPath} && {$gitBinary} git rev-parse --abbrev-ref HEAD");
+                Log::info('Current branch: ' . trim($branchCheck));
+
+                if (trim($branchCheck) !== 'master') {
+                    Log::error("Failed to switch to master branch. Current branch is: " . $branchCheck);
+                    return response()->json(['message' => 'Failed to switch to master branch'], 500);
+                }
 
                 // 9.3 Отменяем все изменения
-                shell_exec('git reset --hard');
+                shell_exec("cd {$repositoryPath} && {$gitBinary} git reset --hard");
                 Log::info('Resetting local changes');
 
                 // 9.4 Обновляем проект с Git
-                shell_exec('git pull origin master');
-                Log::info('Project updated from Git');
+                $pullOutput = shell_exec("cd {$repositoryPath} && {$gitBinary} git pull origin master 2>&1");
+                Log::info('Git pull output: ' . $pullOutput);
 
                 // Сообщение об успешном завершении
                 return response()->json(['message' => 'Git update completed successfully']);
