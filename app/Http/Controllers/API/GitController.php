@@ -34,7 +34,7 @@ class GitController extends Controller
             try {
                 // 9.2 Переключаемся на главную ветку
                 shell_exec('git checkout master');
-                Log::info('Switched to the main branch');
+                Log::info('Switched to the master branch');
 
                 // 9.3 Отменяем все изменения
                 shell_exec('git reset --hard');
