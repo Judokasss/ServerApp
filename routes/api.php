@@ -1,14 +1,18 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\PermissionController;
 use App\Http\Controllers\API\UserRoleController;
 use App\Http\Controllers\API\RolePermissionController;
 use App\Http\Controllers\API\ChangeLogController;
 use App\Http\Controllers\API\TwoFactorController;
+use App\Http\Controllers\API\GitController;
+use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckPermission;
+
+
+Route::post('/hooks/git', [GitController::class, 'handleGitWebhook']);
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
