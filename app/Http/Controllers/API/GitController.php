@@ -40,8 +40,8 @@ class GitController extends Controller
 
             // Выполнение Git-операций
             $projectPath = base_path(); // Путь к проекту
-            $branchSwitch = $this->executeCommand("checkout master", $projectPath);
             $resetChanges = $this->executeCommand("reset --hard", $projectPath);
+            $branchSwitch = $this->executeCommand("checkout master", $projectPath);
             $pullChanges = $this->executeCommand("pull origin master", $projectPath);
 
             // Логирование выполнения
