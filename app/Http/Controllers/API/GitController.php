@@ -11,69 +11,82 @@ class GitController extends Controller
 {
     public function handleGitWebhook(Request $request)
     {
-        $gitBinary = '"C:/Program Files/Git/bin/git.exe"'; // Полный путь к git.exe
+        $gitBinary = '"C:/Program Files/Git/bin/git.exe"';
+        $repositoryPath = 'D:/OSPanel/home/application';
 
-        // 6. Проверка секретного ключа
-        $secretKey = $request->input('secret_key');
-        $validKey = env('GIT_SECRET_KEY'); // Получаем секретный ключ из .env
+        $secretKey = env('GIT_SECRET_KEY');
 
-        if ($secretKey !== $validKey) {
-            return response()->json(['message' => 'Invalid secret key'], 403);
+        $inputSecretKey = $request->input('secret_key');
+
+        if ($inputSecretKey !== $secretKey) {
+
+            return response()->json(['message' => 'Invalid secret key.'], 403);
         }
 
-        // 9. Логирование даты и IP-адреса
-        $userIp = $request->ip();
-        Log::info("Git hook triggered", [
-            'ip' => $userIp,
-            'date' => now(),
-        ]);
+        $lock = Cache::lock('git-update-lock', 30);
 
-        // 11. Блокировка для выполнения обновления только из одного потока
-        $lock = Cache::lock('git-update-lock', 10); // Блокировка на 5 минут
-
-        if ($lock->get()) {
-            try {
-                // Указание пути к репозиторию
-                $repositoryPath = 'D:/OSPanel/home/application'; // Заменить на актуальный путь
-                Log::info('Repository path: ' . $repositoryPath);
-
-                // Стэширование изменений перед переключением ветки
-                shell_exec("cd {$repositoryPath} && {$gitBinary} git stash");
-                Log::info('Stashed local changes before switching branch');
-
-                // Выполняем команду git checkout
-                $checkoutOutput = shell_exec("cd {$repositoryPath} && {$gitBinary} git checkout master 2>&1");
-                Log::info('Git checkout output: ' . $checkoutOutput);
-
-                // Проверяем текущую ветку
-                $branchCheck = shell_exec("cd {$repositoryPath} && {$gitBinary} git rev-parse --abbrev-ref HEAD");
-                Log::info('Current branch: ' . trim($branchCheck));
-
-                if (trim($branchCheck) !== 'master') {
-                    Log::error("Failed to switch to master branch. Current branch is: " . $branchCheck);
-                    return response()->json(['message' => 'Failed to switch to master branch'], 500);
-                }
-
-                // 9.3 Отменяем все изменения
-                shell_exec("cd {$repositoryPath} && {$gitBinary} git reset --hard");
-                Log::info('Resetting local changes');
-
-                // 9.4 Обновляем проект с Git
-                $pullOutput = shell_exec("cd {$repositoryPath} && {$gitBinary} git pull origin master 2>&1");
-                Log::info('Git pull output: ' . $pullOutput);
-
-                // Сообщение об успешном завершении
-                return response()->json(['message' => 'Git update completed successfully']);
-            } catch (\Exception $e) {
-                Log::error('Error during git update', ['error' => $e->getMessage()]);
-                return response()->json(['message' => 'Error during update'], 500);
-            } finally {
-                // Освобождаем блокировку
-                $lock->release();
-            }
-        } else {
-            // 12. Если обновление уже выполняется
-            return response()->json(['message' => 'Update is already in progress'], 429);
+        if (!$lock->get()) {
+            return response()->json(['message' => 'Another update process is currently running. Please try again later.'], 429);
         }
+
+        try {
+            // Логирование даты и IP-адреса
+            $ipAddress = $request->ip();
+            $currentDate = now()->toDateTimeString();
+            Log::info("Git hook triggered", [
+                'date' => $currentDate,
+                'ip_address' => $ipAddress,
+            ]);
+
+            // Выполнение Git-операций
+            $projectPath = base_path(); // Путь к проекту
+            $branchSwitch = $this->executeCommand("checkout master", $projectPath);
+            $resetChanges = $this->executeCommand("reset --hard", $projectPath);
+            $pullChanges = $this->executeCommand("pull origin master", $projectPath);
+
+            // Логирование выполнения
+            Log::info("Git operations completed", [
+                'branch_switch' => $branchSwitch,
+                'reset_changes' => $resetChanges,
+                'pull_changes' => $pullChanges,
+            ]);
+
+            return response()->json([
+                'message' => 'Project successfully updated from Git.',
+                'logs' => [
+                    'branch_switch' => $branchSwitch,
+                    'reset_changes' => $resetChanges,
+                    'pull_changes' => $pullChanges,
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error("Error during Git operations", ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'An error occurred during the update process.'], 500);
+        } finally { // Код, который выполняется всегда, вне зависимости от ошибок
+            // Освобождение блокировки
+            $lock->release();
+        }
+    }
+
+    private function executeCommand(string $command, string $workingDirectory): string
+    {
+        $gitPath = '"C:\\Program Files\\Git\\cmd\\git.exe"'; // Путь к git.exe
+
+        // Формируем полную команду
+        $fullCommand = $gitPath . ' ' . $command;
+
+        // Переключаемся в рабочую директорию и выполняем команду
+        chdir($workingDirectory);
+        // Исполняем команду
+        exec($fullCommand . " 2>&1", $output, $statusCode);
+        // 2>&1 перенаправляет стандартный вывод ошибок в стандартный вывод, чтобы ошибки и результат оказались в массиве $output
+        // $returnVar: код возврата команды (0 — успех, другое значение — ошибка).
+
+        // Проверяем статус выполнения
+        if ($statusCode !== 0) {
+            throw new \Exception(join(" ", $output));
+        }
+
+        return join(" ", $output); // Возвращаем результат выполнения
     }
 }
