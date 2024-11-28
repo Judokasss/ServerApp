@@ -14,12 +14,21 @@ class GitController extends Controller
         $gitBinary = '"C:/Program Files/Git/bin/git.exe"';
         $repositoryPath = 'D:/OSPanel/home/application';
 
-        $secretKey = env('GIT_SECRET_KEY');
+        $secretKey = env('GIT_SECRET_KEY'); // Получаем ключ из .env
+        $inputSecretKey = $request->input('secret_key'); // Получаем ключ из запроса
 
-        $inputSecretKey = $request->input('secret_key');
+        // Проверка наличия ключа в .env
+        if (empty($secretKey)) {
+            return response()->json(['message' => 'Server secret key is not configured.'], 500);
+        }
 
+        // Проверка наличия ключа в запросе
+        if (empty($inputSecretKey)) {
+            return response()->json(['message' => 'Request secret key is missing.'], 400);
+        }
+
+        // Сравнение ключей
         if ($inputSecretKey !== $secretKey) {
-
             return response()->json(['message' => 'Invalid secret key.'], 403);
         }
 
@@ -62,7 +71,7 @@ class GitController extends Controller
         } catch (\Exception $e) {
             Log::error("Error during Git operations", ['error' => $e->getMessage()]);
             return response()->json(['message' => 'An error occurred during the update process.'], 500);
-        } finally { // Код, который выполняется всегда, вне зависимости от ошибок
+        } finally {
             // Освобождение блокировки
             $lock->release();
         }
