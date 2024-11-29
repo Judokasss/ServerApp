@@ -8,6 +8,7 @@ use App\Http\Controllers\API\RolePermissionController;
 use App\Http\Controllers\API\ChangeLogController;
 use App\Http\Controllers\API\TwoFactorController;
 use App\Http\Controllers\API\GitController;
+use App\Http\Controllers\API\AttendanceController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckPermission;
 
@@ -19,6 +20,8 @@ Route::post('/auth/register', [AuthController::class, 'register']);
 
 Route::post('/2fa/confirm', [TwoFactorController::class, 'confirmCode']);
 Route::post('/2fa/request-new-code', [TwoFactorController::class, 'requestNewCode']);
+
+Route::post('/attendance', [AttendanceController::class, 'processAttendanceFile']);
 
 Route::middleware(['auth.custom'])->group(function () {
 
