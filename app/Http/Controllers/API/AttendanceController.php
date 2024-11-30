@@ -5,159 +5,124 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\AttendanceImport;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
-use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
-    public function processAttendanceFile(Request $request)
+    public function upload(Request $request)
     {
-        // Проверяем, был ли файл передан
+        // Проверка наличия файла
         if (!$request->hasFile('file')) {
-            return response()->json(['error' => 'Файл не передан в запросе'], 400);
+            return response()->json(['error' => 'File not found'], 400);
         }
 
         $file = $request->file('file');
-
-        // Проверяем валидность файла
-        if (!$file->isValid() || !in_array($file->getClientOriginalExtension(), ['xls', 'xlsx', 'csv'])) {
-            return response()->json(['error' => 'Неверный формат файла. Допустимые форматы: xls, xlsx, csv'], 400);
-        }
-
-        // Чтение данных из Excel
-        try {
-            $import = new AttendanceImport();
-            $data = Excel::import($import, $file);
-
-            // Получаем данные студентов и занятий
-            $studentsData = $import->students(); // Получаем данные студентов
-            $lessonsData = $import->lessons(); // Получаем данные занятий
-            Log::info('Students Data:', $studentsData);
-            Log::info('Lessons Data:', $lessonsData);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Ошибка при чтении файла: ' . $e->getMessage()], 500);
-        }
+        $data = Excel::toArray([], $file);
 
         // Обработка данных
-        $students = $this->processStudents($studentsData, $lessonsData);
-        Log::info('Processed Students:', $students);
-        $result = $this->calculateResults($students);
-        $autoPassStudents = $this->getAutoPassStudents($students);
+        $students = $this->processData($data);
 
-        // Возвращаем результат
-        return response()->json([
-            'students' => $result['students'],
-            'auto_pass_students' => $autoPassStudents,
-            'result' => $result['result'],
-        ]);
+        return response()->json($students);
     }
 
-    private function processStudents($studentsData, $lessonsData)
+    private function processData($data)
     {
-        $students = [];
+        $groups = [];
+        $rows = $data[0]; // Первый лист Excel
 
-        foreach ($studentsData as $student) {
-            // Структурируем данные студента в ассоциативный массив
-            $studentName = $student[0]; // Имя студента
-            $subgroup = $student[1] ?? 1; // Подгруппа (если не указана, ставим 1)
-            $labsCompleted = $student[2] ?? 0; // Лабораторные работы (если не указаны, ставим 0)
+        // Извлечение данных для занятий
+        $lessonHeaders = array_slice($rows[0], 4); // Типы занятий
+        $lessonDates = array_slice($rows[1], 4);   // Даты
+        $lessonTimes = array_slice($rows[2], 4);   // Время
+        $lessonNumbers = array_slice($rows[3], 4); // Номера занятий
 
-            Log::info('Processing student:', ['student_name' => $studentName, 'subgroup' => $subgroup]);
+        // Минимальное количество лабораторных для зачета
+        $minLabsForCredit = 4; // Например, 4 лабораторные работы из 6 обязательны
 
-            $lessons = [];
+        $totalLabs = 6;
 
-            // Перебор всех уроков
-            foreach ($lessonsData as $lesson) {
-                if (isset($lesson[0])) {
-                    // Преобразуем значение даты в стандартный формат
-                    $lessonDate = Date::excelToDateTimeObject($lesson[0])->format('d.m.Y');
-                } else {
-                    Log::warning('Дата отсутствует в уроке', $lesson);
-                    continue; // пропускаем урок, если нет даты
-                }
+        // Процент посещаемости для зачета
+        $minVisitPercentForCredit = 80; // 80% посещаемости для зачета
 
-                // Проверяем, если студент соответствует уроку
-                $visit = ($lesson[5] == $studentName) && // студент в уроке
-                    ($lesson[4] == $subgroup || $lesson[4] == null); // подгруппа совпадает или не указана
+        // Обработка студентов
+        foreach (array_slice($rows, 4) as $row) {
+            // Пропускаем пустые строки
+            if (empty($row[0]) || empty($row[2])) {
+                continue;
+            }
 
-                // Логирование посещения
-                if ($visit) {
-                    Log::info('Lesson match found', ['lesson' => $lesson, 'student' => $studentName]);
-                }
-                $lessonTime = $this->convertExcelTimeToTime($lesson[1]);
-                // Добавляем информацию о посещении с преобразованной датой
-                $lessons[] = [
-                    'date' => $lessonDate,  // Преобразованная дата
-                    'time' =>  $lessonTime, // lesson[1] — это значение времени в формате Excel,  // время
-                    'type' => $lesson[2],  // тип (лекция, лабораторная)
-                    'number' => $lesson[3],  // номер занятия
-                    'subgroups' => $lesson[4],  // подгруппа
-                    'visit' => $visit,  // true, если студент был на уроке
+            $name = $row[0];
+            $subgroup = $row[1] ?? 1; // Если подгруппа не указана, использовать 1
+            $group = $row[2];
+            $submitted_labs = $row[3];
+            $attendance = [];
+
+            foreach (array_slice($row, 4) as $index => $visit) {
+                $attendance[] = [
+                    'date' => $this->convertExcelDate($lessonDates[$index]),
+                    'time' => $this->convertExcelTimeToTime($lessonTimes[$index]),
+                    'type' => $lessonHeaders[$index] === 'Лекция' ? 'lecture' : 'lab',
+                    'number' => $lessonNumbers[$index],
+                    'subgroup' => $subgroup, // Используем subgroup из текущей строки
+                    'visit' => $visit === '+' // Принимаем "+" как посещение
                 ];
             }
 
-            // Добавляем студента в итоговый массив
-            $students[] = [
-                'name' => $studentName,
+            // Расчет процентов посещаемости
+            $total_classes = count($attendance);
+            $visited_classes = count(array_filter($attendance, fn($att) => $att['visit']));
+            $visit_percent = $total_classes ? round(($visited_classes / $total_classes) * 100, 2) : 0;
+
+            // Расчет процентов лабораторных
+            $success_labs_percent = $submitted_labs ? round(($submitted_labs / $totalLabs) * 100, 2) : 0; // 6 - пример общего числа лаб
+
+            // Условие для зачета: минимум 80% посещаемости и минимум 4 сданных лабораторных работы
+            $result = $visit_percent >= $minVisitPercentForCredit && $submitted_labs >= $minLabsForCredit;
+
+            // Добавляем студента в массив по группе
+            if (!isset($groups[$group])) {
+                $groups[$group] = [
+                    'group_name' => $group,
+                    'students' => [],
+                    'result' => [
+                        'success' => 0,
+                        'unsuccessfully' => 0
+                    ]
+                ];
+            }
+
+            // Добавляем студента в нужную группу
+            $groups[$group]['students'][] = [
+                'name' => $name,
                 'subgroup' => $subgroup,
-                'leasons' => $lessons,
-                'visit_percent' => $this->calculateVisitPercent($lessons),
-                'success_labs_percent' => $this->calculateLabsPercent($labsCompleted),
-                'success_labs' => $labsCompleted,
-                'result' => false,
+                'leasons' => $attendance,
+                'visit_percent' => $visit_percent,
+                'success_labs_percent' => $success_labs_percent,
+                'success_labs' => $submitted_labs,
+                'result' => $result
             ];
-        }
 
-        Log::info('Final student data:', $students);
-
-        return $students;
-    }
-
-    private function calculateVisitPercent($lessons)
-    {
-        $total = count($lessons);
-        $visited = array_filter($lessons, fn($lesson) => $lesson['visit']);
-        return round(count($visited) / $total * 100, 2);
-    }
-
-    private function calculateLabsPercent($labsCompleted)
-    {
-        // Лабораторные работы
-        $requiredLabs = 6; // Пример: обязательных 6 лабораторных
-        return round($labsCompleted / $requiredLabs * 100, 2);
-    }
-
-    private function calculateResults($students)
-    {
-        $success = 0;
-        $unsuccessfully = 0;
-
-        foreach ($students as &$student) {
-            // Проверка автоматического зачета
-            if ($student['visit_percent'] >= 80 && $student['success_labs_percent'] == 100) {
-                $student['result'] = true;
-                $success++;
+            // Подсчитываем успешных и неуспешных студентов в группе
+            if ($result) {
+                $groups[$group]['result']['success']++;
             } else {
-                $unsuccessfully++;
+                $groups[$group]['result']['unsuccessfully']++;
             }
         }
 
-        return [
-            'students' => $students,
-            'result' => [
-                'success' => $success,
-                'unsuccessfully' => $unsuccessfully,
-            ]
-        ];
+        // Преобразуем группы в массив
+        return array_values($groups);
     }
 
-    private function getAutoPassStudents($students)
+
+
+    private function convertExcelDate($excelDate)
     {
-        return array_filter($students, fn($student) => $student['result'] === true);
+        return Carbon::createFromFormat('Y-m-d', gmdate('Y-m-d', ($excelDate - 25569) * 86400))->format('Y-m-d');
     }
 
-    function convertExcelTimeToTime($excelTime)
+
+    private function convertExcelTimeToTime($excelTime)
     {
         $hours = floor($excelTime * 24); // Получаем количество полных часов
         $minutes = round(($excelTime * 24 - $hours) * 60); // Получаем количество минут

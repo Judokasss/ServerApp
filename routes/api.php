@@ -12,7 +12,6 @@ use App\Http\Controllers\API\AttendanceController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckPermission;
 
-
 Route::post('/hooks/git', [GitController::class, 'handleGitWebhook']);
 
 Route::post('/auth/login', [AuthController::class, 'login']);
@@ -21,7 +20,7 @@ Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/2fa/confirm', [TwoFactorController::class, 'confirmCode']);
 Route::post('/2fa/request-new-code', [TwoFactorController::class, 'requestNewCode']);
 
-Route::post('/attendance', [AttendanceController::class, 'processAttendanceFile']);
+Route::post('/attendance', [AttendanceController::class, 'upload']);
 
 Route::middleware(['auth.custom'])->group(function () {
 
