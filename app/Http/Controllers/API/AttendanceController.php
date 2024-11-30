@@ -28,6 +28,9 @@ class AttendanceController extends Controller
     private function processData($data)
     {
         $groups = [];
+        $studentsForAutomaticCredit = []; // Список студентов, заслуживших зачет автоматом
+        $totalStudentsWithAutomaticCredit = 0; // Общий счетчик студентов с автоматом
+
         $rows = $data[0]; // Первый лист Excel
 
         // Извлечение данных для занятий
@@ -38,7 +41,6 @@ class AttendanceController extends Controller
 
         // Минимальное количество лабораторных для зачета
         $minLabsForCredit = 4; // Например, 4 лабораторные работы из 6 обязательны
-
         $totalLabs = 6;
 
         // Процент посещаемости для зачета
@@ -58,14 +60,30 @@ class AttendanceController extends Controller
             $attendance = [];
 
             foreach (array_slice($row, 4) as $index => $visit) {
-                $attendance[] = [
-                    'date' => $this->convertExcelDate($lessonDates[$index]),
-                    'time' => $this->convertExcelTimeToTime($lessonTimes[$index]),
-                    'type' => $lessonHeaders[$index] === 'Лекция' ? 'lecture' : 'lab',
-                    'number' => $lessonNumbers[$index],
-                    'subgroup' => $subgroup, // Используем subgroup из текущей строки
-                    'visit' => $visit === '+' // Принимаем "+" как посещение
-                ];
+                $lessonType = $lessonHeaders[$index];
+
+                // Проверяем тип занятия (лекция или лабораторная работа)
+                if (strpos($lessonType, 'Лекция') !== false) {
+                    // Учёт лекций для всех студентов
+                    $attendance[] = [
+                        'date' => $this->convertExcelDate($lessonDates[$index]),
+                        'time' => $this->convertExcelTimeToTime($lessonTimes[$index]),
+                        'type' => 'lect', // Тип занятия - лекция
+                        'number' => $lessonNumbers[$index],
+                        'subgroup' => $subgroup,
+                        'visit' => $visit === '+' // Принимаем "+" как посещение
+                    ];
+                } elseif (strpos($lessonType, "Лабораторная {$group}/{$subgroup}") !== false) {
+                    // Учёт лабораторных для текущей подгруппы
+                    $attendance[] = [
+                        'date' => $this->convertExcelDate($lessonDates[$index]),
+                        'time' => $this->convertExcelTimeToTime($lessonTimes[$index]),
+                        'type' => 'lab', // Тип занятия - лабораторная работа
+                        'number' => $lessonNumbers[$index],
+                        'subgroup' => $subgroup,
+                        'visit' => $visit === '+' // Принимаем "+" как посещение
+                    ];
+                }
             }
 
             // Расчет процентов посещаемости
@@ -74,7 +92,7 @@ class AttendanceController extends Controller
             $visit_percent = $total_classes ? round(($visited_classes / $total_classes) * 100, 2) : 0;
 
             // Расчет процентов лабораторных
-            $success_labs_percent = $submitted_labs ? round(($submitted_labs / $totalLabs) * 100, 2) : 0; // 6 - пример общего числа лаб
+            $success_labs_percent = $submitted_labs ? round(($submitted_labs / $totalLabs) * 100, 2) : 0;
 
             // Условие для зачета: минимум 80% посещаемости и минимум 4 сданных лабораторных работы
             $result = $visit_percent >= $minVisitPercentForCredit && $submitted_labs >= $minLabsForCredit;
@@ -102,6 +120,17 @@ class AttendanceController extends Controller
                 'result' => $result
             ];
 
+            // Если студент заслужил автомат, добавляем его в список и увеличиваем счетчик
+            if ($result) {
+                $studentsForAutomaticCredit[] = [
+                    'name' => $name,
+                    'group' => $group,
+                    'visit_percent' => $visit_percent,
+                    'success_labs' => $submitted_labs
+                ];
+                $totalStudentsWithAutomaticCredit++;
+            }
+
             // Подсчитываем успешных и неуспешных студентов в группе
             if ($result) {
                 $groups[$group]['result']['success']++;
@@ -110,11 +139,13 @@ class AttendanceController extends Controller
             }
         }
 
-        // Преобразуем группы в массив
-        return array_values($groups);
+        // Преобразуем группы в массив и возвращаем с дополнительными данными
+        return [
+            'groups' => array_values($groups), // Группы с их результатами
+            'studentsForAutomaticCredit' => $studentsForAutomaticCredit, // Список студентов с зачетом автоматом
+            'totalStudentsWithAutomaticCredit' => $totalStudentsWithAutomaticCredit // Общее количество студентов с автоматом
+        ];
     }
-
-
 
     private function convertExcelDate($excelDate)
     {
